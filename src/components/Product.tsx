@@ -1,7 +1,19 @@
-import { Button, Container, Paper } from "@material-ui/core";
+import {
+  Button,
+  Container,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+} from "@material-ui/core";
 import Box from "@mui/material/Box";
 import TextField from "@mui/material/TextField";
 import { useEffect, useState } from "react";
+import Alert from "../test/Alert";
+import DeleteButton from "./DeleteButton";
 
 interface Product {
   id: number;
@@ -14,6 +26,7 @@ export default function Product() {
   const [name, setName] = useState<string>("");
   const [quantity, setQuantity] = useState("");
   const [products, setProducts] = useState<Product[]>([]);
+  const [alertMessage, setAlertMessage] = useState("");
 
   const heading: React.CSSProperties = {
     textAlign: "center",
@@ -32,20 +45,41 @@ export default function Product() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(product),
-    }).then(() => console.log("New product added"));
+    })
+      .then((response) => {
+        if (response.ok) {
+          setAlertMessage("Product added successfully");
+          fetchProducts();
+        } else {
+          setAlertMessage("Failed to add product");
+        }
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+        setAlertMessage("An error occurred");
+      });
   };
-
-  useEffect(() => {
+  const fetchProducts = () => {
     fetch("http://localhost:8020/product")
       .then((res) => res.json())
       .then((result) => {
         setProducts(result);
       });
+  };
+
+  const handleDelete = (productId: number) => {
+    setProducts(products.filter((product) => product.id !== productId));
+  };
+
+  useEffect(() => {
+    fetchProducts();
   }, []);
+
   return (
     <Container>
       <Paper elevation={3} style={paperStyle}>
         <h1 style={heading}>Add product</h1>
+        {alertMessage && <Alert>{alertMessage}</Alert>}
         <Box
           component="form"
           sx={{
@@ -76,21 +110,33 @@ export default function Product() {
         </Box>
       </Paper>
       <h1 style={heading}>Products</h1>
-
       <Paper elevation={3} style={paperStyle}>
-        {products.map((product) => (
-          <Paper
-            elevation={6}
-            style={{ margin: "10px", padding: "15px", textAlign: "left" }}
-            key={product.id}
-          >
-            Id:{product.id}
-            <br />
-            Name:{product.name}
-            <br />
-            Quantity:{product.quantity}
-          </Paper>
-        ))}
+        <TableContainer component={Paper}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Id</TableCell>
+                <TableCell>Name</TableCell>
+                <TableCell>Quantity</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {products.map((product) => (
+                <TableRow key={product.id}>
+                  <TableCell>{product.id}</TableCell>
+                  <TableCell>{product.name}</TableCell>
+                  <TableCell>{product.quantity}</TableCell>
+                  <TableCell>
+                    <DeleteButton
+                      productId={product.id}
+                      onDelete={handleDelete}
+                    />
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
       </Paper>
     </Container>
   );
