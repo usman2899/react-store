@@ -23,7 +23,7 @@ export default function Appbar() {
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             E-store
           </Typography>
-          <Button color="inherit">Login</Button>
+          <Button color="inherit">Usman</Button>
         </Toolbar>
       </AppBar>
     </Box>
